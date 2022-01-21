@@ -8,7 +8,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
-import gltfUrl from "/assets/test.gltf?url";
+import gltfUrl from "/assets/virus.gltf?url";
 // import gltfUrl from "/assets/from_blender.glb?url";
 
 init();
@@ -62,8 +62,8 @@ function init() {
         // console.log(materials);
         scene.add(gltf.scene);
 
-        mixer = new THREE.AnimationMixer(gltf.scene);
-        mixer.clipAction(gltf.animations[0]).play();
+        // mixer = new THREE.AnimationMixer(gltf.scene);
+        // mixer.clipAction(gltf.animations[0]).play();
 
         animate();
       },
@@ -86,7 +86,7 @@ function init() {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
-    mixer.update(delta);
+    // mixer.update(delta);
 
     controls.update();
     stats.update();
