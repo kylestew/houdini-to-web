@@ -8,8 +8,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
-import gltfUrl from "/assets/abstract.gltf?url";
-// import gltfUrl from "/assets/from_blender.glb?url";
+import gltfUrl from "/assets/bunny/bunny.glb?url";
 
 init();
 
