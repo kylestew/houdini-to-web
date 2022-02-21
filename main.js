@@ -2,13 +2,11 @@ import "./style.css";
 
 import * as THREE from "three";
 import Stats from "stats.js";
-
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-
-import gltfUrl from "/assets/bunny/bunny.glb?url";
+import { bunnyScene } from "./scenes/bunny";
 
 init();
 
@@ -18,28 +16,19 @@ function init() {
   const stats = new Stats();
   container.appendChild(stats.dom);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  const renderer = new THREE.WebGLRenderer({ antialias: false });
+  renderer.physicallyCorrectLights = true;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
 
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xbfe3dd);
-  scene.environment = pmremGenerator.fromScene(
-    new RoomEnvironment(),
-    0.04
-  ).texture;
-
   const camera = new THREE.PerspectiveCamera(
-    40,
+    52,
     window.innerWidth / window.innerHeight,
     1,
     100
   );
-  camera.position.set(5, 2, 8);
+  camera.position.set(3, 0.5, -3);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
@@ -47,49 +36,52 @@ function init() {
   controls.enablePan = false;
   controls.enableDamping = true;
 
-  let mixer;
-  let clock = new THREE.Clock();
+  var scene;
+  var composer;
+  function createPostWorkflow(size) {
+    if (scene) {
+      const renderPass = new RenderPass(scene.scene, camera);
+      composer = new EffectComposer(renderer);
+      composer.addPass(renderPass);
 
-  function loadScene() {
-    const loader = new GLTFLoader();
-    loader.load(
-      gltfUrl,
-      (gltf) => {
-        console.log(gltf);
-        // console.log(gltf.scene.children[0].material);
-        // const materials = await gltf.parser.getDependencies("material");
-        // console.log(materials);
-        scene.add(gltf.scene);
-
-        // mixer = new THREE.AnimationMixer(gltf.scene);
-        // mixer.clipAction(gltf.animations[0]).play();
-
-        animate();
-      },
-      undefined,
-      function (e) {
-        console.err(e);
-      }
-    );
+      scene.appendPostWorkflow(composer, size);
+    }
   }
-  loadScene();
 
-  window.onresize = function () {
+  function resizeWindow() {
+    let size = [window.innerWidth, window.innerHeight];
+
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (composer) {
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    // rebuild for size
+    createPostWorkflow(size);
+  }
+  resizeWindow();
+
+  window.onresize = function () {
+    resizeWindow();
   };
 
-  function animate() {
-    requestAnimationFrame(animate);
-
-    const delta = clock.getDelta();
-    // mixer.update(delta);
+  function render() {
+    requestAnimationFrame(render);
 
     controls.update();
     stats.update();
 
-    renderer.render(scene, camera);
+    if (scene) {
+      composer.render(scene.scene, camera);
+    }
   }
+
+  // load initial scene
+  scene = bunnyScene(renderer);
+  scene.prepare();
+  createPostWorkflow([window.innerWidth, window.innerHeight]);
+  render();
 }
