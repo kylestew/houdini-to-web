@@ -9,7 +9,7 @@ import { LUTPass } from "three/examples/jsm/postprocessing/LUTPass.js";
 
 import lutUrl from "/assets/luts/Everyday_Pro_Color.cube?url";
 import hdr from "/assets/hdrs/Barce_Rooftop_C_3k.hdr?url";
-import gltfUrl from "/assets/bunny/bunny.glb?url";
+import gltfUrl from "/assets/virus.gltf?url";
 
 function createScene(renderer) {
   const scene = new THREE.Scene();

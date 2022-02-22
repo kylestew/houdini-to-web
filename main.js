@@ -6,9 +6,18 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 
-import { bunnyScene } from "./scenes/bunny";
+import { createScene as bunnyScene } from "./scenes/bunny";
+import { createScene as virusScene } from "./scenes/virus";
 
-init();
+const app = init();
+app.nextScene();
+
+document.getElementById("next").onclick = function changeContent() {
+  app.nextScene();
+};
+document.getElementById("prev").onclick = function changeContent() {
+  app.nextScene(true);
+};
 
 function init() {
   const container = document.getElementById("container");
@@ -28,7 +37,6 @@ function init() {
     1,
     100
   );
-  camera.position.set(3, 0.5, -3);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
@@ -44,7 +52,7 @@ function init() {
       composer = new EffectComposer(renderer);
       composer.addPass(renderPass);
 
-      scene.appendPostWorkflow(composer, size);
+      scene.appendPost(composer, size);
     }
   }
 
@@ -79,9 +87,29 @@ function init() {
     }
   }
 
-  // load initial scene
-  scene = bunnyScene(renderer);
-  scene.prepare();
-  createPostWorkflow([window.innerWidth, window.innerHeight]);
+  const scenes = [bunnyScene(renderer), virusScene(renderer)];
+  let sceneIdx = -1;
+
+  function nextScene(backwards = false) {
+    if (scene) {
+      console.log("pausing scene", sceneIdx);
+      scene.pause();
+    }
+
+    sceneIdx += backwards ? -1 : 1;
+    if (sceneIdx >= scenes.length) sceneIdx = 0;
+    scene = scenes[sceneIdx];
+
+    console.log("preparing scene ", sceneIdx);
+    scene.prepare();
+    console.log("begin scene ", sceneIdx);
+    scene.begin(camera);
+    createPostWorkflow([window.innerWidth, window.innerHeight]);
+  }
+
   render();
+
+  return {
+    nextScene,
+  };
 }
